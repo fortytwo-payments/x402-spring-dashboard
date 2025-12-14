@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{x402-dashboard/layout :: layout(~{::content})}">
+<th:block th:fragment="content">
+    <div class="space-y-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Agents</h1>
+            <form class="flex items-center space-x-4" method="get">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">From:</label>
+                    <input type="date" name="from" th:value="${fromDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">To:</label>
+                    <input type="date" name="to" th:value="${toDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">Apply</button>
+            </form>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Top Agents by Count -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Agents by Request Count</h3>
+                <div class="h-64">
+                    <canvas id="agentCountChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Agents by Revenue -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Agents by Revenue</h3>
+                <div class="h-64">
+                    <canvas id="agentRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Table -->
+        <div class="card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Agent Statistics</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="table-header">#</th>
+                            <th class="table-header">Agent ID</th>
+                            <th class="table-header">Request Count</th>
+                            <th class="table-header">Total Amount (atomic)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="agent, iterStat : ${agents}">
+                            <td class="table-cell text-gray-500" th:text="${iterStat.index + 1}">1</td>
+                            <td class="table-cell font-medium">
+                                <span th:if="${agent.agentId != null}" th:text="${agent.agentId}">Agent</span>
+                                <span th:if="${agent.agentId == null}" class="text-gray-400 italic">Unknown</span>
+                            </td>
+                            <td class="table-cell" th:text="${agent.count}">0</td>
+                            <td class="table-cell" th:text="${agent.amountAtomic}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(agents)}">
+                            <td colspan="4" class="table-cell text-center text-gray-500">No agent data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const agents = /*[[${agents}]]*/ [];
+
+            const colors = [
+                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+            ];
+
+            // Top Agents by Count Chart
+            const countCtx = document.getElementById('agentCountChart').getContext('2d');
+            new Chart(countCtx, {
+                type: 'bar',
+                data: {
+                    labels: agents.slice(0, 10).map(a => a.agentId || 'Unknown'),
+                    datasets: [{
+                        label: 'Request Count',
+                        data: agents.slice(0, 10).map(a => a.count),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Top Agents by Revenue Chart
+            const revenueCtx = document.getElementById('agentRevenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: agents.slice(0, 10).map(a => a.agentId || 'Unknown'),
+                    datasets: [{
+                        label: 'Total Amount',
+                        data: agents.slice(0, 10).map(a => a.amountAtomic),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</th:block>
+</html>

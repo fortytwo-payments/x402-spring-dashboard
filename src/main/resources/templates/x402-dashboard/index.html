@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{x402-dashboard/layout :: layout(~{::content})}">
+<th:block th:fragment="content">
+    <div class="space-y-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Overview</h1>
+            <form class="flex items-center space-x-4" method="get">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">From:</label>
+                    <input type="date" name="from" th:value="${fromDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">To:</label>
+                    <input type="date" name="to" th:value="${toDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">Apply</button>
+            </form>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="stat-card">
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Requests</p>
+                <p class="mt-2 text-3xl font-bold text-gray-900" th:text="${totals.totalCount}">0</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Successful</p>
+                <p class="mt-2 text-3xl font-bold text-green-600" th:text="${totals.successCount}">0</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Success Rate</p>
+                <p class="mt-2 text-3xl font-bold text-blue-600" th:text="${#numbers.formatDecimal(totals.successRate, 1, 1) + '%'}">0%</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Revenue</p>
+                <p class="mt-2 text-3xl font-bold text-purple-600" th:text="${totals.successAmount}">0</p>
+                <p class="text-xs text-gray-500 mt-1">(atomic units)</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Daily Requests Chart -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Requests</h3>
+                <div class="h-64">
+                    <canvas id="dailyRequestsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Status Distribution Chart -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Status Distribution</h3>
+                <div class="h-64">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Breakdown Table -->
+        <div class="card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Status Breakdown</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="table-header">Status</th>
+                            <th class="table-header">Count</th>
+                            <th class="table-header">Amount (atomic)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="stat : ${statusAggregations}">
+                            <td class="table-cell">
+                                <span class="status-badge"
+                                      th:classappend="${stat.status.name() == 'SUCCESS'} ? 'status-success' : (${stat.status.name() == 'PAYMENT_REQUIRED'} ? 'status-payment-required' : 'status-error')"
+                                      th:text="${stat.status}">STATUS</span>
+                            </td>
+                            <td class="table-cell" th:text="${stat.count}">0</td>
+                            <td class="table-cell" th:text="${stat.amountAtomic}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(statusAggregations)}">
+                            <td colspan="3" class="table-cell text-center text-gray-500">No data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const dailyData = /*[[${dailyData}]]*/ [];
+            const statusData = /*[[${statusAggregations}]]*/ [];
+
+            // Daily Requests Chart
+            const dailyCtx = document.getElementById('dailyRequestsChart').getContext('2d');
+            new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: dailyData.map(d => d.date),
+                    datasets: [{
+                        label: 'Requests',
+                        data: dailyData.map(d => d.count),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Status Distribution Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusColors = {
+                'SUCCESS': '#10B981',
+                'PAYMENT_REQUIRED': '#F59E0B',
+                'VERIFY_FAILED': '#EF4444',
+                'SETTLE_FAILED': '#DC2626',
+                'UNKNOWN_ERROR': '#6B7280'
+            };
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusData.map(s => s.status),
+                    datasets: [{
+                        data: statusData.map(s => s.count),
+                        backgroundColor: statusData.map(s => statusColors[s.status] || '#6B7280')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</th:block>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{x402-dashboard/layout :: layout(~{::content})}">
+<th:block th:fragment="content">
+    <div class="space-y-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Endpoints</h1>
+            <form class="flex items-center space-x-4" method="get">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">From:</label>
+                    <input type="date" name="from" th:value="${fromDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">To:</label>
+                    <input type="date" name="to" th:value="${toDate}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">Apply</button>
+            </form>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Top Endpoints by Count -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Endpoints by Request Count</h3>
+                <div class="h-64">
+                    <canvas id="endpointCountChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Endpoints by Revenue -->
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Endpoints by Revenue</h3>
+                <div class="h-64">
+                    <canvas id="endpointRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoints Table -->
+        <div class="card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Endpoint Statistics</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="table-header">#</th>
+                            <th class="table-header">Endpoint</th>
+                            <th class="table-header">Request Count</th>
+                            <th class="table-header">Total Amount (atomic)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="ep, iterStat : ${endpoints}">
+                            <td class="table-cell text-gray-500" th:text="${iterStat.index + 1}">1</td>
+                            <td class="table-cell font-medium font-mono text-sm">
+                                <span th:if="${ep.endpoint != null}" th:text="${ep.endpoint}">/api/endpoint</span>
+                                <span th:if="${ep.endpoint == null}" class="text-gray-400 italic">Unknown</span>
+                            </td>
+                            <td class="table-cell" th:text="${ep.count}">0</td>
+                            <td class="table-cell" th:text="${ep.amountAtomic}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(endpoints)}">
+                            <td colspan="4" class="table-cell text-center text-gray-500">No endpoint data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const endpoints = /*[[${endpoints}]]*/ [];
+
+            const colors = [
+                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+            ];
+
+            // Top Endpoints by Count Chart
+            const countCtx = document.getElementById('endpointCountChart').getContext('2d');
+            new Chart(countCtx, {
+                type: 'bar',
+                data: {
+                    labels: endpoints.slice(0, 10).map(e => e.endpoint || 'Unknown'),
+                    datasets: [{
+                        label: 'Request Count',
+                        data: endpoints.slice(0, 10).map(e => e.count),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Top Endpoints by Revenue Chart
+            const revenueCtx = document.getElementById('endpointRevenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: endpoints.slice(0, 10).map(e => e.endpoint || 'Unknown'),
+                    datasets: [{
+                        label: 'Total Amount',
+                        data: endpoints.slice(0, 10).map(e => e.amountAtomic),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</th:block>
+</html>

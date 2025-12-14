@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>x402 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .nav-link {
+            @apply px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+        }
+        .nav-link.active {
+            @apply bg-blue-100 text-blue-700 font-medium;
+        }
+        .card {
+            @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+        }
+        .stat-card {
+            @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center;
+        }
+        .table-header {
+            @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+        }
+        .table-cell {
+            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+        }
+        .status-badge {
+            @apply px-2 py-1 text-xs font-semibold rounded-full;
+        }
+        .status-success {
+            @apply bg-green-100 text-green-800;
+        }
+        .status-payment-required {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .status-error {
+            @apply bg-red-100 text-red-800;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <a th:href="${basePath}" class="flex items-center space-x-2">
+                            <span class="text-2xl font-bold text-blue-600">x402</span>
+                            <span class="text-xl text-gray-700">Dashboard</span>
+                        </a>
+                    </div>
+                    <nav class="flex space-x-2">
+                        <a th:href="${basePath}" class="nav-link" th:classappend="${activePage == 'overview'} ? 'active' : ''">Overview</a>
+                        <a th:href="${basePath + '/agents'}" class="nav-link" th:classappend="${activePage == 'agents'} ? 'active' : ''">Agents</a>
+                        <a th:href="${basePath + '/endpoints'}" class="nav-link" th:classappend="${activePage == 'endpoints'} ? 'active' : ''">Endpoints</a>
+                        <a th:href="${basePath + '/events'}" class="nav-link" th:classappend="${activePage == 'events'} ? 'active' : ''">Events</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div th:replace="${content}"></div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 py-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-gray-500 text-sm">
+                    x402 Dashboard - Powered by Spring Boot
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script th:inline="javascript">
+        const API_PATH = /*[[${apiPath}]]*/ '/x402-dashboard/api';
+        const BASE_PATH = /*[[${basePath}]]*/ '/x402-dashboard';
+    </script>
+</body>
+</html>
