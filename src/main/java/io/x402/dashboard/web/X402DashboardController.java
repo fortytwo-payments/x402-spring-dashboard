@@ -39,8 +39,16 @@ public class X402DashboardController {
             @RequestParam(required = false) String to,
             Model model) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
 
         OverviewTotals totals = aggregationService.getOverviewTotals(tenantId, fromTime, toTime);
 
@@ -63,8 +71,16 @@ public class X402DashboardController {
             @RequestParam(required = false) String to,
             Model model) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
 
         model.addAttribute("apiPath", props.getApiPath());
         model.addAttribute("basePath", props.getPath());
@@ -83,8 +99,16 @@ public class X402DashboardController {
             @RequestParam(required = false) String to,
             Model model) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
 
         model.addAttribute("apiPath", props.getApiPath());
         model.addAttribute("basePath", props.getPath());
@@ -106,9 +130,17 @@ public class X402DashboardController {
             @RequestParam(defaultValue = "50") int size,
             Model model) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
-        X402UsageStatus usageStatus = status != null ? X402UsageStatus.valueOf(status) : null;
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        X402UsageStatus usageStatus = (status != null && !status.isEmpty()) ? X402UsageStatus.valueOf(status) : null;
 
         var eventsPage = eventService.findEvents(tenantId, usageStatus, fromTime, toTime, page, size);
 
@@ -138,6 +170,46 @@ public class X402DashboardController {
             try {
                 // Try date-only format
                 return OffsetDateTime.parse(dateStr + "T00:00:00Z");
+            } catch (Exception ex) {
+                return defaultValue;
+            }
+        }
+    }
+
+    private OffsetDateTime parseStartDateTime(String dateStr, OffsetDateTime defaultValue) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            // Try ISO format first
+            return OffsetDateTime.parse(dateStr);
+        } catch (Exception e) {
+            try {
+                // Try date-only format - start of day in system timezone
+                return java.time.LocalDate.parse(dateStr)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime();
+            } catch (Exception ex) {
+                return defaultValue;
+            }
+        }
+    }
+
+    private OffsetDateTime parseEndDateTime(String dateStr, OffsetDateTime defaultValue) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            // Try ISO format first
+            return OffsetDateTime.parse(dateStr);
+        } catch (Exception e) {
+            try {
+                // Try date-only format - end of day in system timezone
+                return java.time.LocalDate.parse(dateStr)
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime();
             } catch (Exception ex) {
                 return defaultValue;
             }

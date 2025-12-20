@@ -87,7 +87,7 @@
         <!-- Pagination -->
         <div th:if="${totalPages > 1}" class="flex items-center justify-center space-x-2">
             <a th:if="${currentPage > 0}"
-               th:href="@{${basePath + '/events'}(page=${currentPage - 1}, from=${fromDate}, to=${toDate}, status=${selectedStatus})}"
+               th:href="${selectedStatus != null} ? @{${basePath + '/events'}(page=${currentPage - 1}, from=${fromDate}, to=${toDate}, status=${selectedStatus})} : @{${basePath + '/events'}(page=${currentPage - 1}, from=${fromDate}, to=${toDate})}"
                class="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
                 Previous
             </a>
@@ -95,7 +95,7 @@
                 Page <span th:text="${currentPage + 1}">1</span> of <span th:text="${totalPages}">1</span>
             </span>
             <a th:if="${currentPage < totalPages - 1}"
-               th:href="@{${basePath + '/events'}(page=${currentPage + 1}, from=${fromDate}, to=${toDate}, status=${selectedStatus})}"
+               th:href="${selectedStatus != null} ? @{${basePath + '/events'}(page=${currentPage + 1}, from=${fromDate}, to=${toDate}, status=${selectedStatus})} : @{${basePath + '/events'}(page=${currentPage + 1}, from=${fromDate}, to=${toDate})}"
                class="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
                 Next
             </a>

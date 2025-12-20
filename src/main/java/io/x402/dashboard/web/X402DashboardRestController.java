@@ -44,8 +44,16 @@ public class X402DashboardRestController {
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
 
         return ResponseEntity.ok(aggregationService.getOverviewTotals(tenantId, fromTime, toTime));
     }
@@ -60,8 +68,16 @@ public class X402DashboardRestController {
             @RequestParam(required = false) String to,
             @RequestParam(required = false) String status) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
         X402UsageStatus usageStatus = status != null ? X402UsageStatus.valueOf(status) : X402UsageStatus.SUCCESS;
 
         return ResponseEntity.ok(aggregationService.aggregateByAgent(tenantId, fromTime, toTime, usageStatus));
@@ -77,8 +93,16 @@ public class X402DashboardRestController {
             @RequestParam(required = false) String to,
             @RequestParam(required = false) String status) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
         X402UsageStatus usageStatus = status != null ? X402UsageStatus.valueOf(status) : X402UsageStatus.SUCCESS;
 
         return ResponseEntity.ok(aggregationService.aggregateByEndpoint(tenantId, fromTime, toTime, usageStatus));
@@ -93,8 +117,16 @@ public class X402DashboardRestController {
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
 
         return ResponseEntity.ok(aggregationService.aggregateByStatus(tenantId, fromTime, toTime));
     }
@@ -109,8 +141,16 @@ public class X402DashboardRestController {
             @RequestParam(required = false) String to,
             @RequestParam(required = false) String status) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(30, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(30)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
         X402UsageStatus usageStatus = status != null ? X402UsageStatus.valueOf(status) : null;
 
         return ResponseEntity.ok(aggregationService.aggregateByDate(tenantId, fromTime, toTime, usageStatus));
@@ -128,9 +168,17 @@ public class X402DashboardRestController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
 
-        OffsetDateTime fromTime = parseDateTime(from, OffsetDateTime.now().minus(7, ChronoUnit.DAYS));
-        OffsetDateTime toTime = parseDateTime(to, OffsetDateTime.now());
-        X402UsageStatus usageStatus = status != null ? X402UsageStatus.valueOf(status) : null;
+        OffsetDateTime fromTime = parseStartDateTime(from,
+                java.time.LocalDate.now().minusDays(7)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        OffsetDateTime toTime = parseEndDateTime(to,
+                java.time.LocalDate.now()
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime());
+        X402UsageStatus usageStatus = (status != null && !status.isEmpty()) ? X402UsageStatus.valueOf(status) : null;
 
         return ResponseEntity.ok(eventService.findEvents(tenantId, usageStatus, fromTime, toTime, page, size));
     }
@@ -163,6 +211,46 @@ public class X402DashboardRestController {
         } catch (Exception e) {
             try {
                 return OffsetDateTime.parse(dateStr + "T00:00:00Z");
+            } catch (Exception ex) {
+                return defaultValue;
+            }
+        }
+    }
+
+    private OffsetDateTime parseStartDateTime(String dateStr, OffsetDateTime defaultValue) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            // Try ISO format first
+            return OffsetDateTime.parse(dateStr);
+        } catch (Exception e) {
+            try {
+                // Try date-only format - start of day in system timezone
+                return java.time.LocalDate.parse(dateStr)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime();
+            } catch (Exception ex) {
+                return defaultValue;
+            }
+        }
+    }
+
+    private OffsetDateTime parseEndDateTime(String dateStr, OffsetDateTime defaultValue) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            // Try ISO format first
+            return OffsetDateTime.parse(dateStr);
+        } catch (Exception e) {
+            try {
+                // Try date-only format - end of day in system timezone
+                return java.time.LocalDate.parse(dateStr)
+                        .atTime(23, 59, 59)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toOffsetDateTime();
             } catch (Exception ex) {
                 return defaultValue;
             }

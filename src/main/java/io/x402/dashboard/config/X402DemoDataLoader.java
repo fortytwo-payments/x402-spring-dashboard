@@ -33,6 +33,7 @@ public class X402DemoDataLoader {
             System.out.println("Loading demo data...");
 
             // Generate 100 sample events over the last 30 days
+            OffsetDateTime now = OffsetDateTime.now();
             for (int i = 0; i < 100; i++) {
                 String agent = agents[random.nextInt(agents.length)];
                 String endpoint = endpoints[random.nextInt(endpoints.length)];
@@ -44,6 +45,11 @@ public class X402DemoDataLoader {
                 Long amount = status == X402UsageStatus.SUCCESS ? (long) (random.nextDouble() * 10000000) : null;
                 String txHash = status == X402UsageStatus.SUCCESS ? "0x" + Long.toHexString(random.nextLong()) : null;
                 long latency = 50 + random.nextInt(450);
+
+                // Distribute events over the last 30 days
+                OffsetDateTime createdAt = now.minusDays(random.nextInt(30))
+                        .minusHours(random.nextInt(24))
+                        .minusMinutes(random.nextInt(60));
 
                 logger.builder()
                         .agentId(agent)
@@ -58,7 +64,8 @@ public class X402DemoDataLoader {
                         .clientIp("192.168.1." + random.nextInt(255))
                         .userAgent("Mozilla/5.0 (Demo Agent)")
                         .latencyMs(latency)
-                        .settledAt(status == X402UsageStatus.SUCCESS ? OffsetDateTime.now().minusDays(random.nextInt(30)) : null)
+                        .createdAt(createdAt)
+                        .settledAt(status == X402UsageStatus.SUCCESS ? createdAt.plusMinutes(random.nextInt(60)) : null)
                         .log();
             }
 

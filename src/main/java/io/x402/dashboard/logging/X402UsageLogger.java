@@ -65,6 +65,7 @@ public class X402UsageLogger {
             String clientIp,
             String userAgent,
             Long latencyMs,
+            OffsetDateTime createdAt,
             OffsetDateTime settledAt
     ) {
         X402UsageEvent event = new X402UsageEvent();
@@ -82,7 +83,7 @@ public class X402UsageLogger {
         event.setClientIp(clientIp);
         event.setUserAgent(userAgent);
         event.setLatencyMs(latencyMs);
-        event.setCreatedAt(OffsetDateTime.now());
+        event.setCreatedAt(createdAt != null ? createdAt : OffsetDateTime.now());
         event.setSettledAt(settledAt);
         return eventService.save(event);
     }
@@ -96,7 +97,7 @@ public class X402UsageLogger {
             X402UsageStatus status,
             Long latencyMs
     ) {
-        return log(null, null, null, method, endpoint, null, null, null, null, null, status, null, null, latencyMs, null);
+        return log(null, null, null, method, endpoint, null, null, null, null, null, status, null, null, latencyMs, null, null);
     }
 
     /**
@@ -113,7 +114,7 @@ public class X402UsageLogger {
             Long latencyMs
     ) {
         return log(null, agentId, null, method, endpoint, null, network, asset, amountAtomic, txHash,
-                X402UsageStatus.SUCCESS, null, null, latencyMs, OffsetDateTime.now());
+                X402UsageStatus.SUCCESS, null, null, latencyMs, null, OffsetDateTime.now());
     }
 
     /**
@@ -129,7 +130,7 @@ public class X402UsageLogger {
             Long latencyMs
     ) {
         return log(null, agentId, null, method, endpoint, null, network, asset, amountAtomic, null,
-                X402UsageStatus.PAYMENT_REQUIRED, null, null, latencyMs, null);
+                X402UsageStatus.PAYMENT_REQUIRED, null, null, latencyMs, null, null);
     }
 
     /**
@@ -142,7 +143,7 @@ public class X402UsageLogger {
             Long latencyMs
     ) {
         return log(null, agentId, null, method, endpoint, null, null, null, null, null,
-                X402UsageStatus.VERIFY_FAILED, null, null, latencyMs, null);
+                X402UsageStatus.VERIFY_FAILED, null, null, latencyMs, null, null);
     }
 
     /**
@@ -156,7 +157,7 @@ public class X402UsageLogger {
             Long latencyMs
     ) {
         return log(null, agentId, null, method, endpoint, null, null, null, null, txHash,
-                X402UsageStatus.SETTLE_FAILED, null, null, latencyMs, null);
+                X402UsageStatus.SETTLE_FAILED, null, null, latencyMs, null, null);
     }
 
     /**
@@ -185,6 +186,7 @@ public class X402UsageLogger {
         private String clientIp;
         private String userAgent;
         private Long latencyMs;
+        private OffsetDateTime createdAt;
         private OffsetDateTime settledAt;
 
         public X402UsageEventBuilder(X402UsageLogger logger) {
@@ -261,6 +263,11 @@ public class X402UsageLogger {
             return this;
         }
 
+        public X402UsageEventBuilder createdAt(OffsetDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
         public X402UsageEventBuilder settledAt(OffsetDateTime settledAt) {
             this.settledAt = settledAt;
             return this;
@@ -268,7 +275,7 @@ public class X402UsageLogger {
 
         public X402UsageEvent log() {
             return logger.log(tenantId, agentId, agentType, method, endpoint, billingKey,
-                    network, asset, amountAtomic, txHash, status, clientIp, userAgent, latencyMs, settledAt);
+                    network, asset, amountAtomic, txHash, status, clientIp, userAgent, latencyMs, createdAt, settledAt);
         }
     }
 }
