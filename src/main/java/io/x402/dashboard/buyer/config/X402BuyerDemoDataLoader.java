@@ -99,8 +99,10 @@ public class X402BuyerDemoDataLoader {
                 Long amount = status == SpendingStatus.SUCCESS ?
                         (long) (baseCost * (0.7 + random.nextDouble() * 0.6)) : null;
 
+                // Generate 64-character transaction hash (0x + 64 hex chars for 32 bytes)
                 String txHash = status == SpendingStatus.SUCCESS ?
-                        "0x" + Long.toHexString(random.nextLong()).substring(0, 40) : null;
+                        String.format("0x%016x%016x%016x%016x",
+                            random.nextLong(), random.nextLong(), random.nextLong(), random.nextLong()) : null;
 
                 long latency = 50 + random.nextInt(950);
 
