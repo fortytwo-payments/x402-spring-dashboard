@@ -9,11 +9,11 @@ import java.time.OffsetDateTime;
  */
 @Entity
 @Table(name = "x402_spending_event", indexes = {
-    @Index(name = "idx_buyer_created", columnList = "buyer_id, created_at"),
-    @Index(name = "idx_service_created", columnList = "service_id, created_at"),
-    @Index(name = "idx_category", columnList = "category"),
-    @Index(name = "idx_status", columnList = "status"),
-    @Index(name = "idx_budget", columnList = "budget_id")
+    @Index(name = "idx_spending_buyer_created", columnList = "buyer_id, created_at"),
+    @Index(name = "idx_spending_service_created", columnList = "service_id, created_at"),
+    @Index(name = "idx_spending_category", columnList = "category"),
+    @Index(name = "idx_spending_status", columnList = "status"),
+    @Index(name = "idx_spending_budget", columnList = "budget_id")
 })
 public class X402SpendingEvent {
 
