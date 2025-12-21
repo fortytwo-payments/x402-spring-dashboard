@@ -27,8 +27,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ConditionalOnWebApplication
 @ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
 @EnableConfigurationProperties(X402DashboardProperties.class)
-@EnableJpaRepositories(basePackages = "io.x402.dashboard.repository")
-@EntityScan(basePackages = "io.x402.dashboard.domain")
+@EnableJpaRepositories(basePackages = {"io.x402.dashboard.repository", "io.x402.dashboard.buyer.repository"})
+@EntityScan(basePackages = {"io.x402.dashboard.domain", "io.x402.dashboard.buyer.domain"})
 @ComponentScan(basePackages = "io.x402.dashboard")
 public class X402DashboardAutoConfiguration implements WebMvcConfigurer {
 
