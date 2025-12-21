@@ -258,8 +258,8 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const buyerId = /*[[${buyerId}]]*/ 'default';
-        const fromDate = /*[[${#temporals.format(from, 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX')}]]*/ null;
-        const toDate = /*[[${#temporals.format(to, 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX')}]]*/ null;
+        const fromDate = /*[[${from.toString()}]]*/ null;
+        const toDate = /*[[${to.toString()}]]*/ null;
 
         // Fetch and render daily spending chart
         fetch(`/x402-buyer-dashboard/api/charts/daily-spending?buyerId=${buyerId}&from=${fromDate}&to=${toDate}`)

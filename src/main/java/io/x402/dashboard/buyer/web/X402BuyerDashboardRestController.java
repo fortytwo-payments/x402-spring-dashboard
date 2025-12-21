@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -51,8 +53,12 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         SpendingOverview overview = aggregationService.getOverview(actualBuyerId, fromDate, toDate);
         return ResponseEntity.ok(overview);
@@ -73,8 +79,12 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         List<ServiceSpendingAggregation> services = aggregationService.getTopServices(
             actualBuyerId, fromDate, toDate, limit
@@ -114,8 +124,12 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         Map<LocalDate, Long> dailySpending = aggregationService.getDailySpending(
             actualBuyerId, fromDate, toDate
@@ -138,8 +152,12 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         Map<ServiceCategory, Long> categorySpending = aggregationService.getSpendingByCategory(
             actualBuyerId, fromDate, toDate

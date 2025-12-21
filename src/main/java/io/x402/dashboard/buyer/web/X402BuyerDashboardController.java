@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -52,8 +54,12 @@ public class X402BuyerDashboardController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         // Get overview statistics
         SpendingOverview overview = aggregationService.getOverview(actualBuyerId, fromDate, toDate);
@@ -92,8 +98,12 @@ public class X402BuyerDashboardController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         // Get all services (no limit)
         List<ServiceSpendingAggregation> services = aggregationService.getTopServices(
@@ -131,8 +141,12 @@ public class X402BuyerDashboardController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+        OffsetDateTime fromDate = from != null ?
+            LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ?
+            LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
+            OffsetDateTime.now();
 
         // Parse status
         io.x402.dashboard.buyer.domain.SpendingStatus spendingStatus = null;
