@@ -258,11 +258,11 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const buyerId = /*[[${buyerId}]]*/ 'default';
-        const fromDate = /*[[${from.toString()}]]*/ null;
-        const toDate = /*[[${to.toString()}]]*/ null;
+        const fromDate = /*[[${#temporals.format(from, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ null;
+        const toDate = /*[[${#temporals.format(to, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ null;
 
         // Fetch and render daily spending chart
-        fetch(`/x402-buyer-dashboard/api/charts/daily-spending?buyerId=${buyerId}&from=${fromDate}&to=${toDate}`)
+        fetch(`/x402-buyer-dashboard/api/charts/daily-spending?buyerId=${buyerId}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`)
             .then(res => res.json())
             .then(data => {
                 const dates = Object.keys(data).sort();
@@ -308,7 +308,7 @@
             });
 
         // Fetch and render category spending chart
-        fetch(`/x402-buyer-dashboard/api/charts/category-spending?buyerId=${buyerId}&from=${fromDate}&to=${toDate}`)
+        fetch(`/x402-buyer-dashboard/api/charts/category-spending?buyerId=${buyerId}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`)
             .then(res => res.json())
             .then(data => {
                 const categories = Object.keys(data);
@@ -353,7 +353,7 @@
             });
 
         // Fetch and render top services chart
-        fetch(`/x402-buyer-dashboard/api/services/top?buyerId=${buyerId}&from=${fromDate}&to=${toDate}&limit=10`)
+        fetch(`/x402-buyer-dashboard/api/services/top?buyerId=${buyerId}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}&limit=10`)
             .then(res => res.json())
             .then(data => {
                 const serviceNames = data.map(s => s.serviceName);
