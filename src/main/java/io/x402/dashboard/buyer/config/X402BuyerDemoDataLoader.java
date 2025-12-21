@@ -106,8 +106,8 @@ public class X402BuyerDemoDataLoader {
 
                 long latency = 50 + random.nextInt(950);
 
-                // Distribute events over the last 30 days
-                OffsetDateTime createdAt = now.minusDays(random.nextInt(30))
+                // Distribute events over the last 60 days for better demo experience
+                OffsetDateTime createdAt = now.minusDays(random.nextInt(60))
                         .minusHours(random.nextInt(24))
                         .minusMinutes(random.nextInt(60));
 

@@ -53,10 +53,10 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ?
+        OffsetDateTime fromDate = (from != null && !from.isBlank()) ?
             LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ?
+        OffsetDateTime toDate = (to != null && !to.isBlank()) ?
             LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now();
 
@@ -79,10 +79,10 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ?
+        OffsetDateTime fromDate = (from != null && !from.isBlank()) ?
             LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ?
+        OffsetDateTime toDate = (to != null && !to.isBlank()) ?
             LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now();
 
@@ -124,10 +124,10 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ?
+        OffsetDateTime fromDate = (from != null && !from.isBlank()) ?
             LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ?
+        OffsetDateTime toDate = (to != null && !to.isBlank()) ?
             LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now();
 
@@ -152,10 +152,10 @@ public class X402BuyerDashboardRestController {
             actualBuyerId = "default";
         }
 
-        OffsetDateTime fromDate = from != null ?
+        OffsetDateTime fromDate = (from != null && !from.isBlank()) ?
             LocalDateTime.parse(from).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now().minusDays(30);
-        OffsetDateTime toDate = to != null ?
+        OffsetDateTime toDate = (to != null && !to.isBlank()) ?
             LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now();
 
