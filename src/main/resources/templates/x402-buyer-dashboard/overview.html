@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X402 Buyer Dashboard - Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">X402 Buyer Dashboard</h1>
+            <p class="text-gray-600">Track your outbound payments and spending</p>
+            <div class="mt-2 text-sm text-gray-500">
+                Buyer ID: <span class="font-mono" th:text="${buyerId}">default</span>
+            </div>
+        </div>
+
+        <!-- Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Total Spent -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-500 mb-1">Total Spent (USDC)</div>
+                <div class="text-3xl font-bold text-blue-600">
+                    $<span th:text="${#numbers.formatDecimal(overview.totalSpentAtomic / 1000000.0, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">Last 30 days</div>
+            </div>
+
+            <!-- Total Requests -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-500 mb-1">Total Requests</div>
+                <div class="text-3xl font-bold text-gray-800">
+                    <span th:text="${#numbers.formatInteger(overview.totalRequests, 1, 'COMMA')}">0</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">All status</div>
+            </div>
+
+            <!-- Success Rate -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-500 mb-1">Success Rate</div>
+                <div class="text-3xl font-bold text-green-600">
+                    <span th:text="${#numbers.formatDecimal(overview.successRate, 1, 'COMMA', 1, 'POINT')}">0.0</span>%
+                </div>
+                <div class="text-xs text-gray-400 mt-1">
+                    <span th:text="${overview.successCount}">0</span> successful
+                </div>
+            </div>
+
+            <!-- Avg Cost -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-500 mb-1">Avg Cost (USDC)</div>
+                <div class="text-3xl font-bold text-purple-600">
+                    $<span th:text="${#numbers.formatDecimal(overview.avgCostAtomic / 1000000.0, 1, 'COMMA', 4, 'POINT')}">0.0000</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">Per request</div>
+            </div>
+        </div>
+
+        <!-- Top Services -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800">Top Services by Spending</h2>
+            </div>
+            <div class="p-6">
+                <div th:if="${#lists.isEmpty(topServices)}" class="text-center text-gray-500 py-8">
+                    No spending data available
+                </div>
+                <div th:if="${!#lists.isEmpty(topServices)}">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Service
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Category
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Requests
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total Spent (USDC)
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    % of Total
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="service : ${topServices}">
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900" th:text="${service.serviceName}">Service Name</div>
+                                    <div class="text-xs text-gray-500" th:text="${service.serviceId}">service-id</div>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800"
+                                          th:text="${service.category}">CATEGORY</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    <span th:text="${#numbers.formatInteger(service.requestCount, 1, 'COMMA')}">0</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                    $<span th:text="${#numbers.formatDecimal(service.totalSpentAtomic / 1000000.0, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                    <span th:text="${#numbers.formatDecimal(service.percentOfTotal, 1, 'COMMA', 1, 'POINT')}">0.0</span>%
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800">Recent Transactions</h2>
+            </div>
+            <div class="p-6">
+                <div th:if="${#lists.isEmpty(recentTransactions)}" class="text-center text-gray-500 py-8">
+                    No transactions found
+                </div>
+                <div th:if="${!#lists.isEmpty(recentTransactions)}">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Time
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Service
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Endpoint
+                                </th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Amount (USDC)
+                                </th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tx Hash
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="tx : ${recentTransactions}">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:text="${#temporals.format(tx.createdAt, 'MM/dd HH:mm')}">12/21 14:30</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900" th:text="${tx.serviceName ?: tx.serviceId}">Service</div>
+                                </td>
+                                <td class="px-4 py-4 text-sm text-gray-500">
+                                    <span th:text="${tx.endpoint}">/ endpoint</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                          th:classappend="${tx.status.name() == 'SUCCESS'} ? 'bg-green-100 text-green-800' :
+                                                         (${tx.status.name() == 'FAILED'} ? 'bg-red-100 text-red-800' :
+                                                         (${tx.status.name() == 'PENDING'} ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'))"
+                                          th:text="${tx.status}">STATUS</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                    <span th:if="${tx.amountAtomic != null}">
+                                        $<span th:text="${#numbers.formatDecimal(tx.amountAtomic / 1000000.0, 1, 'COMMA', 4, 'POINT')}">0.0000</span>
+                                    </span>
+                                    <span th:if="${tx.amountAtomic == null}" class="text-gray-400">-</span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-xs font-mono text-gray-500">
+                                    <span th:if="${tx.txHash != null}" th:text="${#strings.substring(tx.txHash, 0, 10) + '...'}">0x1234...</span>
+                                    <span th:if="${tx.txHash == null}" class="text-gray-400">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center text-sm text-gray-500">
+            <p>X402 Buyer Dashboard v0.2.0 |
+                <a href="/" class="text-blue-600 hover:text-blue-800">Back to Home</a> |
+                <a href="/x402-dashboard" class="text-blue-600 hover:text-blue-800">Seller Dashboard</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
