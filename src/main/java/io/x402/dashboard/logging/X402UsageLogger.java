@@ -25,7 +25,7 @@ import java.time.OffsetDateTime;
  *         "POST",                  // method
  *         "/api/resource",         // endpoint
  *         "billing-key",           // billingKey
- *         "base-sepolia",          // network
+ *         "eip155:84532",          // network (CAIP-2 format: Base Sepolia)
  *         "USDC",                  // asset
  *         1000000L,                // amountAtomic (1 USDC)
  *         "0x123...",              // txHash

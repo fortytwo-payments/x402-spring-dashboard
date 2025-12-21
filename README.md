@@ -36,6 +36,8 @@ X402 Dashboard is a Spring Boot starter library that provides real-time monitori
 
 The x402 protocol enables **HTTP-native micropayments** using blockchain technology. When a client requests a paid resource, the server responds with `402 Payment Required` along with payment details. After payment verification, the resource is delivered.
 
+**Protocol Version**: This dashboard supports **x402 v2** specification with CAIP-2 network identifiers (e.g., `eip155:84532` for Base Sepolia).
+
 This dashboard helps you understand:
 - How many payment requests are being made
 - Which endpoints generate the most revenue
@@ -210,7 +212,7 @@ public class MyApiController {
             "agent-123",           // agentId
             "POST",                // method
             "/api/resource",       // endpoint
-            "base-sepolia",        // network
+            "eip155:84532",        // network (CAIP-2 format: Base Sepolia)
             "USDC",                // asset
             1000000L,              // amountAtomic (1 USDC in atomic units)
             "0x1234abcd...",       // txHash
@@ -234,7 +236,7 @@ usageLogger.builder()
     .method("POST")
     .endpoint("/api/chat")
     .billingKey("premium-tier")
-    .network("base-sepolia")
+    .network("eip155:84532")  // CAIP-2 format: Base Sepolia
     .asset("USDC")
     .amountAtomic(500000L)
     .txHash("0xabc123...")
@@ -251,7 +253,7 @@ usageLogger.builder()
 // Log payment required (402 response)
 usageLogger.logPaymentRequired(
     "agent-123", "GET", "/api/data",
-    "base-sepolia", "USDC", 2000000L, 50L
+    "eip155:84532", "USDC", 2000000L, 50L  // CAIP-2 network format
 );
 
 // Log verification failure
@@ -281,6 +283,30 @@ The interceptor will:
 - Capture client IP and User-Agent
 
 > **Note**: Dashboard endpoints (`/x402-dashboard/**`) are automatically excluded from auto-logging.
+
+## Network Format (CAIP-2)
+
+This dashboard uses the **CAIP-2** (Chain Agnostic Improvement Proposal) standard for network identifiers, as specified in x402 v2.
+
+### Common Network Identifiers
+
+| Network | CAIP-2 Format | Chain ID |
+|---------|---------------|----------|
+| Base Sepolia | `eip155:84532` | 84532 |
+| Base Mainnet | `eip155:8453` | 8453 |
+| Ethereum Mainnet | `eip155:1` | 1 |
+| Ethereum Sepolia | `eip155:11155111` | 11155111 |
+| Polygon Mainnet | `eip155:137` | 137 |
+| Arbitrum One | `eip155:42161` | 42161 |
+| Solana Devnet | `solana:devnet` | - |
+| Solana Mainnet | `solana:mainnet` | - |
+
+### Format Structure
+
+- **EVM chains**: `eip155:<chainId>`
+- **Solana**: `solana:<network>`
+
+Learn more about CAIP-2: https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 
 ## Configuration
 
@@ -437,7 +463,7 @@ class X402DashboardIntegrationTest {
         // Given
         logger.logSuccess(
             "test-agent", "POST", "/api/test",
-            "base-sepolia", "USDC", 1000000L,
+            "eip155:84532", "USDC", 1000000L,  // CAIP-2 format
             "0xtest...", 100L
         );
 

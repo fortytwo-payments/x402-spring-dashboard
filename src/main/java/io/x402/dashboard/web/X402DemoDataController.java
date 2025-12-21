@@ -60,7 +60,7 @@ public class X402DemoDataController {
             "/api/v1/search"
         };
 
-        String[] networks = {"base-sepolia", "base-mainnet", "ethereum", "polygon", "arbitrum"};
+        String[] networks = {"eip155:84532", "eip155:8453", "eip155:1", "eip155:137", "eip155:42161"};
         String[] assets = {"USDC", "USDT", "ETH", "WETH"};
         String[] methods = {"POST", "GET", "PUT"};
         AgentType[] agentTypes = AgentType.values();
@@ -157,7 +157,7 @@ public class X402DemoDataController {
             @RequestParam(required = false, defaultValue = "POST") String method,
             @RequestParam(required = false, defaultValue = "/api/v1/test") String endpoint,
             @RequestParam(required = false, defaultValue = "SUCCESS") String status,
-            @RequestParam(required = false, defaultValue = "base-sepolia") String network,
+            @RequestParam(required = false, defaultValue = "eip155:84532") String network,
             @RequestParam(required = false, defaultValue = "USDC") String asset,
             @RequestParam(required = false, defaultValue = "1000000") Long amount) {
 

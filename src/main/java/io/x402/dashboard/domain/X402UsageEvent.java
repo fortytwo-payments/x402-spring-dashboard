@@ -57,7 +57,7 @@ public class X402UsageEvent {
     private String billingKey;
 
     /**
-     * Blockchain network (e.g., base-sepolia, ethereum).
+     * Blockchain network in CAIP-2 format (e.g., eip155:84532 for Base Sepolia, eip155:1 for Ethereum Mainnet).
      */
     @Column(name = "network")
     private String network;

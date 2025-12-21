@@ -51,7 +51,7 @@ class X402DemoDataTest {
         assertThat(event1.getStatus()).isEqualTo(X402UsageStatus.SUCCESS);
 
         // Test logSuccess
-        var event2 = usageLogger.logSuccess("agent-001", "POST", "/api/chat", "base-sepolia", "USDC", 1000000L, "0x123abc", 150L);
+        var event2 = usageLogger.logSuccess("agent-001", "POST", "/api/chat", "eip155:84532", "USDC", 1000000L, "0x123abc", 150L);
         assertThat(event2).isNotNull();
         assertThat(event2.getAgentId()).isEqualTo("agent-001");
 
@@ -81,7 +81,7 @@ class X402DemoDataTest {
                     "agent-" + (i % 2), // agent-0 and agent-1
                     "POST",
                     "/api/endpoint-" + (i % 3), // 3 endpoints
-                    "base-sepolia",
+                    "eip155:84532",
                     "USDC",
                     1000000L,
                     "0x" + i,
@@ -121,7 +121,7 @@ class X402DemoDataTest {
 
         String[] agents = {"claude-agent-001", "gpt-agent-002", "gemini-agent-003", null};
         String[] endpoints = {"/api/v1/chat", "/api/v1/generate", "/api/v1/analyze"};
-        String[] networks = {"base-sepolia", "ethereum"};
+        String[] networks = {"eip155:84532", "eip155:1"};
         String[] assets = {"USDC", "ETH"};
 
         for (int i = 0; i < count; i++) {
@@ -166,7 +166,7 @@ class X402DemoDataTest {
                         .agentType(AgentType.CLAUDE)
                         .method("POST")
                         .endpoint(endpoints[random.nextInt(endpoints.length)])
-                        .network(status == X402UsageStatus.SUCCESS ? "base-sepolia" : null)
+                        .network(status == X402UsageStatus.SUCCESS ? "eip155:84532" : null)
                         .asset(status == X402UsageStatus.SUCCESS ? "USDC" : null)
                         .amountAtomic(status == X402UsageStatus.SUCCESS ? 500_000L + random.nextInt(2_000_000) : null)
                         .status(status)

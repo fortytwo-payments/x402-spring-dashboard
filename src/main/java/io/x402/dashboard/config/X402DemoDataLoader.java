@@ -25,7 +25,7 @@ public class X402DemoDataLoader {
             Random random = new Random(42);
             String[] agents = {"claude-agent-001", "gpt-agent-002", "gemini-agent-003", "custom-bot-004", null};
             String[] endpoints = {"/api/v1/chat", "/api/v1/generate", "/api/v1/analyze", "/api/v1/translate", "/api/v1/summarize"};
-            String[] networks = {"base-sepolia", "ethereum", "polygon"};
+            String[] networks = {"eip155:84532", "eip155:1", "eip155:137"};
             String[] assets = {"USDC", "ETH", "USDT"};
             X402UsageStatus[] statuses = X402UsageStatus.values();
             AgentType[] agentTypes = AgentType.values();

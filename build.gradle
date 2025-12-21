@@ -6,7 +6,7 @@ plugins {
 
 group = 'io.github.fortytwo-payments'
 version = '0.0.1-SNAPSHOT'
-description = 'X402 Dashboard Spring Boot Starter for monitoring HTTP 402 Payment Required transactions'
+description = 'X402 v2 Dashboard Spring Boot Starter for monitoring HTTP 402 Payment Required transactions'
 
 java {
 	toolchain {
