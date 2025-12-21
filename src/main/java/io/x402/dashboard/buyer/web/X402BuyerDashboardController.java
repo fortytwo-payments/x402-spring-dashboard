@@ -148,9 +148,12 @@ public class X402BuyerDashboardController {
             LocalDateTime.parse(to).atZone(ZoneId.systemDefault()).toOffsetDateTime() :
             OffsetDateTime.now();
 
+        // Normalize empty strings to null
+        String actualServiceId = (serviceId != null && !serviceId.isBlank()) ? serviceId : null;
+
         // Parse status
         io.x402.dashboard.buyer.domain.SpendingStatus spendingStatus = null;
-        if (status != null && !status.isEmpty()) {
+        if (status != null && !status.isBlank()) {
             try {
                 spendingStatus = io.x402.dashboard.buyer.domain.SpendingStatus.valueOf(status);
             } catch (IllegalArgumentException e) {
@@ -162,7 +165,7 @@ public class X402BuyerDashboardController {
         org.springframework.data.domain.Page<X402SpendingEvent> transactionsPage =
             eventService.findWithFilters(
                 actualBuyerId,
-                serviceId,
+                actualServiceId,
                 spendingStatus,
                 fromDate,
                 toDate,
