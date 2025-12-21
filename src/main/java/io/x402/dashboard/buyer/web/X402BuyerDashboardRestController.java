@@ -1,6 +1,7 @@
 package io.x402.dashboard.buyer.web;
 
 import io.x402.dashboard.buyer.config.X402BuyerDashboardProperties;
+import io.x402.dashboard.buyer.domain.ServiceCategory;
 import io.x402.dashboard.buyer.domain.X402SpendingEvent;
 import io.x402.dashboard.buyer.service.X402SpendingAggregationService;
 import io.x402.dashboard.buyer.service.X402SpendingEventService;
@@ -10,8 +11,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API Controller for Buyer Dashboard.
@@ -95,5 +98,53 @@ public class X402BuyerDashboardRestController {
 
         List<X402SpendingEvent> events = eventService.findRecent(actualBuyerId);
         return ResponseEntity.ok(events.stream().limit(limit).toList());
+    }
+
+    /**
+     * Get daily spending trend for charts.
+     */
+    @GetMapping("/charts/daily-spending")
+    public ResponseEntity<Map<LocalDate, Long>> getDailySpending(
+            @RequestParam(required = false) String buyerId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+
+        String actualBuyerId = buyerId != null ? buyerId : properties.getDefaultBuyerId();
+        if (actualBuyerId == null) {
+            actualBuyerId = "default";
+        }
+
+        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+
+        Map<LocalDate, Long> dailySpending = aggregationService.getDailySpending(
+            actualBuyerId, fromDate, toDate
+        );
+
+        return ResponseEntity.ok(dailySpending);
+    }
+
+    /**
+     * Get spending by category for charts.
+     */
+    @GetMapping("/charts/category-spending")
+    public ResponseEntity<Map<ServiceCategory, Long>> getCategorySpending(
+            @RequestParam(required = false) String buyerId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+
+        String actualBuyerId = buyerId != null ? buyerId : properties.getDefaultBuyerId();
+        if (actualBuyerId == null) {
+            actualBuyerId = "default";
+        }
+
+        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+
+        Map<ServiceCategory, Long> categorySpending = aggregationService.getSpendingByCategory(
+            actualBuyerId, fromDate, toDate
+        );
+
+        return ResponseEntity.ok(categorySpending);
     }
 }

@@ -67,7 +67,8 @@ public class X402SpendingLogger {
             String clientIp,
             String userAgent,
             OffsetDateTime requestedAt,
-            OffsetDateTime settledAt
+            OffsetDateTime settledAt,
+            OffsetDateTime createdAt
     ) {
         X402SpendingEvent event = new X402SpendingEvent();
         event.setBuyerId(buyerId);
@@ -92,6 +93,7 @@ public class X402SpendingLogger {
         event.setUserAgent(userAgent);
         event.setRequestedAt(requestedAt != null ? requestedAt : OffsetDateTime.now());
         event.setSettledAt(settledAt);
+        event.setCreatedAt(createdAt); // Allow setting createdAt for demo data
 
         return repository.save(event);
     }
@@ -116,7 +118,7 @@ public class X402SpendingLogger {
             network, asset, amountAtomic, txHash, null,
             SpendingStatus.SUCCESS,
             null, null, latencyMs, null, null, null, null,
-            null, OffsetDateTime.now()
+            null, OffsetDateTime.now(), null
         );
     }
 
@@ -139,7 +141,7 @@ public class X402SpendingLogger {
             network, asset, amountAtomic, null, null,
             SpendingStatus.PAYMENT_REQUIRED,
             null, null, latencyMs, null, null, null, null,
-            null, null
+            null, null, null
         );
     }
 
@@ -163,7 +165,7 @@ public class X402SpendingLogger {
             network, asset, amountAtomic, null, paymentId,
             SpendingStatus.PENDING,
             null, null, latencyMs, null, null, null, null,
-            null, null
+            null, null, null
         );
     }
 
@@ -183,7 +185,7 @@ public class X402SpendingLogger {
             null, null, null, null, null,
             SpendingStatus.FAILED,
             null, null, latencyMs, errorMessage, null, null, null,
-            null, null
+            null, null, null
         );
     }
 
@@ -203,7 +205,7 @@ public class X402SpendingLogger {
             null, null, null, null, null,
             SpendingStatus.REJECTED,
             null, null, latencyMs, errorMessage, null, null, null,
-            null, null
+            null, null, null
         );
     }
 
@@ -241,6 +243,7 @@ public class X402SpendingLogger {
         private String userAgent;
         private OffsetDateTime requestedAt;
         private OffsetDateTime settledAt;
+        private OffsetDateTime createdAt;
 
         public X402SpendingEventBuilder(X402SpendingLogger logger) {
             this.logger = logger;
@@ -356,12 +359,17 @@ public class X402SpendingLogger {
             return this;
         }
 
+        public X402SpendingEventBuilder createdAt(OffsetDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
         public X402SpendingEvent log() {
             return logger.log(
                 buyerId, buyerName, serviceId, serviceName, serviceUrl, endpoint,
                 category, network, asset, amountAtomic, txHash, paymentId,
                 status, budgetId, projectId, latencyMs, errorMessage,
-                method, clientIp, userAgent, requestedAt, settledAt
+                method, clientIp, userAgent, requestedAt, settledAt, createdAt
             );
         }
     }

@@ -76,4 +76,95 @@ public class X402BuyerDashboardController {
 
         return "x402-buyer-dashboard/overview";
     }
+
+    /**
+     * Services Page - Detailed service analysis.
+     */
+    @GetMapping("/services")
+    public String services(
+            @RequestParam(required = false) String buyerId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            Model model) {
+
+        String actualBuyerId = buyerId != null ? buyerId : properties.getDefaultBuyerId();
+        if (actualBuyerId == null) {
+            actualBuyerId = "default";
+        }
+
+        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+
+        // Get all services (no limit)
+        List<ServiceSpendingAggregation> services = aggregationService.getTopServices(
+            actualBuyerId, fromDate, toDate, 100
+        );
+
+        // Get overview for totals
+        SpendingOverview overview = aggregationService.getOverview(actualBuyerId, fromDate, toDate);
+
+        model.addAttribute("services", services);
+        model.addAttribute("overview", overview);
+        model.addAttribute("buyerId", actualBuyerId);
+        model.addAttribute("from", fromDate);
+        model.addAttribute("to", toDate);
+
+        return "x402-buyer-dashboard/services";
+    }
+
+    /**
+     * Transactions Page - Full transaction list with filtering.
+     */
+    @GetMapping("/transactions")
+    public String transactions(
+            @RequestParam(required = false) String buyerId,
+            @RequestParam(required = false) String serviceId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
+
+        String actualBuyerId = buyerId != null ? buyerId : properties.getDefaultBuyerId();
+        if (actualBuyerId == null) {
+            actualBuyerId = "default";
+        }
+
+        OffsetDateTime fromDate = from != null ? OffsetDateTime.parse(from) : OffsetDateTime.now().minusDays(30);
+        OffsetDateTime toDate = to != null ? OffsetDateTime.parse(to) : OffsetDateTime.now();
+
+        // Parse status
+        io.x402.dashboard.buyer.domain.SpendingStatus spendingStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                spendingStatus = io.x402.dashboard.buyer.domain.SpendingStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                // Invalid status, ignore
+            }
+        }
+
+        // Get paginated transactions
+        org.springframework.data.domain.Page<X402SpendingEvent> transactionsPage =
+            eventService.findWithFilters(
+                actualBuyerId,
+                serviceId,
+                spendingStatus,
+                fromDate,
+                toDate,
+                org.springframework.data.domain.PageRequest.of(page, size,
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
+            );
+
+        model.addAttribute("transactions", transactionsPage);
+        model.addAttribute("buyerId", actualBuyerId);
+        model.addAttribute("serviceId", serviceId);
+        model.addAttribute("status", status);
+        model.addAttribute("from", fromDate);
+        model.addAttribute("to", toDate);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", transactionsPage.getTotalPages());
+
+        return "x402-buyer-dashboard/transactions";
+    }
 }

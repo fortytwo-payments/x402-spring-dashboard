@@ -9,7 +9,9 @@ import io.x402.dashboard.buyer.service.dto.SpendingOverview;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -149,6 +151,28 @@ public class X402SpendingAggregationService {
             .filter(e -> e.getCategory() != null && e.getAmountAtomic() != null)
             .collect(Collectors.groupingBy(
                 X402SpendingEvent::getCategory,
+                Collectors.summingLong(X402SpendingEvent::getAmountAtomic)
+            ));
+    }
+
+    /**
+     * Get daily spending trend.
+     * Returns a map of date -> total amount spent on that date.
+     */
+    public Map<LocalDate, Long> getDailySpending(
+            String buyerId,
+            OffsetDateTime from,
+            OffsetDateTime to) {
+
+        List<X402SpendingEvent> events = repository.findByBuyerIdAndStatusAndCreatedAtBetween(
+            buyerId, SpendingStatus.SUCCESS, from, to
+        );
+
+        return events.stream()
+            .filter(e -> e.getAmountAtomic() != null && e.getCreatedAt() != null)
+            .collect(Collectors.groupingBy(
+                e -> e.getCreatedAt().atZoneSameInstant(ZoneId.systemDefault()).toLocalDate(),
+                TreeMap::new,
                 Collectors.summingLong(X402SpendingEvent::getAmountAtomic)
             ));
     }

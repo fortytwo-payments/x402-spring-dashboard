@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X402 Buyer Dashboard - Overview</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
@@ -15,6 +16,47 @@
             <div class="mt-2 text-sm text-gray-500">
                 Buyer ID: <span class="font-mono" th:text="${buyerId}">default</span>
             </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <a href="/x402-buyer-dashboard"
+                   class="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+                    Overview
+                </a>
+                <a href="/x402-buyer-dashboard/services"
+                   class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Services
+                </a>
+                <a href="/x402-buyer-dashboard/transactions"
+                   class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Transactions
+                </a>
+            </nav>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="mb-6 bg-white rounded-lg shadow p-4">
+            <form method="get" action="/x402-buyer-dashboard" class="flex items-end gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                    <input type="datetime-local" name="from"
+                           th:value="${#temporals.format(from, 'yyyy-MM-dd\'T\'HH:mm')}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                    <input type="datetime-local" name="to"
+                           th:value="${#temporals.format(to, 'yyyy-MM-dd\'T\'HH:mm')}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <input type="hidden" name="buyerId" th:value="${buyerId}">
+                <button type="submit"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Apply Filter
+                </button>
+            </form>
         </div>
 
         <!-- Overview Cards -->
@@ -182,13 +224,180 @@
             </div>
         </div>
 
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <!-- Daily Spending Trend Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Daily Spending Trend</h3>
+                <canvas id="dailySpendingChart"></canvas>
+            </div>
+
+            <!-- Category Spending Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Spending by Category</h3>
+                <canvas id="categorySpendingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Services Bar Chart -->
+        <div class="bg-white rounded-lg shadow p-6 mt-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Top Services by Spending</h3>
+            <canvas id="topServicesChart"></canvas>
+        </div>
+
         <!-- Footer -->
         <div class="mt-8 text-center text-sm text-gray-500">
-            <p>X402 Buyer Dashboard v0.2.0 |
+            <p>X402 Buyer Dashboard v0.3.0 |
                 <a href="/" class="text-blue-600 hover:text-blue-800">Back to Home</a> |
                 <a href="/x402-dashboard" class="text-blue-600 hover:text-blue-800">Seller Dashboard</a>
             </p>
         </div>
     </div>
+
+    <!-- Chart.js Scripts -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const buyerId = /*[[${buyerId}]]*/ 'default';
+        const fromDate = /*[[${#temporals.format(from, 'yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX')}]]*/ null;
+        const toDate = /*[[${#temporals.format(to, 'yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX')}]]*/ null;
+
+        // Fetch and render daily spending chart
+        fetch(`/x402-buyer-dashboard/api/charts/daily-spending?buyerId=${buyerId}&from=${fromDate}&to=${toDate}`)
+            .then(res => res.json())
+            .then(data => {
+                const dates = Object.keys(data).sort();
+                const amounts = dates.map(date => data[date] / 1000000.0); // Convert to USDC
+
+                new Chart(document.getElementById('dailySpendingChart'), {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Daily Spending (USDC)',
+                            data: amounts,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.y.toFixed(4) + ' USDC';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Fetch and render category spending chart
+        fetch(`/x402-buyer-dashboard/api/charts/category-spending?buyerId=${buyerId}&from=${fromDate}&to=${toDate}`)
+            .then(res => res.json())
+            .then(data => {
+                const categories = Object.keys(data);
+                const amounts = categories.map(cat => data[cat] / 1000000.0); // Convert to USDC
+
+                new Chart(document.getElementById('categorySpendingChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: categories,
+                        datasets: [{
+                            data: amounts,
+                            backgroundColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(168, 85, 247)',
+                                'rgb(34, 197, 94)',
+                                'rgb(251, 146, 60)',
+                                'rgb(236, 72, 153)',
+                                'rgb(14, 165, 233)',
+                                'rgb(132, 204, 22)',
+                                'rgb(250, 204, 21)',
+                                'rgb(239, 68, 68)',
+                                'rgb(156, 163, 175)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: 'right' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        return label + ': $' + value.toFixed(4) + ' USDC';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Fetch and render top services chart
+        fetch(`/x402-buyer-dashboard/api/services/top?buyerId=${buyerId}&from=${fromDate}&to=${toDate}&limit=10`)
+            .then(res => res.json())
+            .then(data => {
+                const serviceNames = data.map(s => s.serviceName);
+                const amounts = data.map(s => s.totalSpentAtomic / 1000000.0); // Convert to USDC
+
+                new Chart(document.getElementById('topServicesChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: serviceNames,
+                        datasets: [{
+                            label: 'Total Spent (USDC)',
+                            data: amounts,
+                            backgroundColor: 'rgb(168, 85, 247)',
+                            borderColor: 'rgb(147, 51, 234)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.x.toFixed(4) + ' USDC';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        /*]]>*/
+    </script>
 </body>
 </html>
