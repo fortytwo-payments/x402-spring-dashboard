@@ -4,17 +4,23 @@ import io.x402.dashboard.logging.X402UsageLogger;
 import io.x402.dashboard.repository.X402UsageEventRepository;
 import io.x402.dashboard.service.X402UsageAggregationService;
 import io.x402.dashboard.service.X402UsageEventService;
+import io.x402.dashboard.web.X402ClientLoggingInterceptor;
 import io.x402.dashboard.web.X402DashboardController;
 import io.x402.dashboard.web.X402DashboardRestController;
 import io.x402.dashboard.web.X402UsageLoggingInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -30,6 +36,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableJpaRepositories(basePackages = {"io.x402.dashboard.repository", "io.x402.dashboard.buyer.repository"})
 @EntityScan(basePackages = {"io.x402.dashboard.domain", "io.x402.dashboard.buyer.domain"})
 @ComponentScan(basePackages = "io.x402.dashboard")
+@EnableAspectJAutoProxy
 public class X402DashboardAutoConfiguration implements WebMvcConfigurer {
 
     private final X402DashboardProperties properties;
@@ -76,6 +83,23 @@ public class X402DashboardAutoConfiguration implements WebMvcConfigurer {
     @ConditionalOnMissingBean
     public X402UsageLoggingInterceptor x402UsageLoggingInterceptor(X402UsageLogger logger) {
         return new X402UsageLoggingInterceptor(logger, properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public X402ClientLoggingInterceptor x402ClientLoggingInterceptor(X402UsageLogger logger) {
+        return new X402ClientLoggingInterceptor(logger, properties);
+    }
+
+    /**
+     * Customizer to automatically add X402ClientLoggingInterceptor to all RestTemplate beans
+     * when client-auto-logging is enabled.
+     */
+    @Bean
+    @ConditionalOnClass(RestTemplate.class)
+    @ConditionalOnProperty(prefix = "x402.dashboard", name = "enable-client-auto-logging", havingValue = "true")
+    public RestTemplateCustomizer x402RestTemplateCustomizer(X402ClientLoggingInterceptor interceptor) {
+        return restTemplate -> restTemplate.getInterceptors().add(interceptor);
     }
 
     @Override

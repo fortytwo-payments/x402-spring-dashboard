@@ -298,7 +298,7 @@ usageLogger.logSettleFailed(
 );
 ```
 
-### Auto-Logging Interceptor
+### Auto-Logging Interceptor (Server-side)
 
 Enable automatic logging for all incoming requests:
 
@@ -314,6 +314,124 @@ The interceptor will:
 - Capture client IP and User-Agent
 
 > **Note**: Dashboard endpoints (`/x402-dashboard/**`) are automatically excluded from auto-logging.
+
+### Annotation-Based Auto Logging
+
+Use the `@X402Logged` annotation to automatically log specific method executions:
+
+```java
+@Service
+public class PaymentService {
+
+    @X402Logged(
+        agentId = "buyer-123",
+        agentType = AgentType.CUSTOM,
+        method = "POST",
+        endpoint = "/api/payment",
+        network = "eip155:84532",  // Base Sepolia (CAIP-2)
+        asset = "USDC",
+        amountAtomic = 1000000L    // 1 USDC
+    )
+    public PaymentResponse processPayment(PaymentRequest request) {
+        // Your business logic...
+        return response;
+    }
+
+    @X402Logged(
+        agentId = "agent-456",
+        network = "eip155:1",  // Ethereum Mainnet (CAIP-2)
+        asset = "ETH"
+    )
+    public void executeTransaction() {
+        // Minimal annotation - uses method name as endpoint
+    }
+}
+```
+
+**Features:**
+- **Method-level control**: Apply to specific methods only
+- **Automatic status tracking**: SUCCESS if method completes, UNKNOWN_ERROR if exception thrown
+- **Latency measurement**: Automatically tracks method execution time
+- **Flexible configuration**: All annotation parameters are optional with sensible defaults
+
+**Available annotation parameters:**
+- `tenantId`: Tenant identifier (optional)
+- `agentId`: Agent/buyer identifier
+- `agentType`: Type of agent (CLAUDE, GPT, GEMINI, CUSTOM, etc.)
+- `method`: HTTP method or operation type (default: "METHOD_CALL")
+- `endpoint`: Resource path (default: fully qualified method name)
+- `billingKey`: Billing/pricing tier key
+- `network`: Blockchain network in CAIP-2 format (e.g., "eip155:84532")
+- `asset`: Token/currency symbol (e.g., "USDC", "ETH")
+- `amountAtomic`: Amount in atomic units
+- `txHash`: Transaction hash (if available)
+
+### RestTemplate Client-side Auto Logging
+
+Enable automatic logging for outgoing HTTP requests made with `RestTemplate` or `RestClient`:
+
+```properties
+x402.dashboard.enable-client-auto-logging=true
+```
+
+This automatically adds an interceptor to all `RestTemplate` beans that:
+- Logs all outgoing HTTP requests
+- Captures request/response latency
+- Maps HTTP status codes to usage statuses
+- Extracts X-402-* headers from requests
+
+**Manual configuration:**
+
+```java
+@Configuration
+public class MyConfig {
+
+    @Autowired
+    private X402ClientLoggingInterceptor clientLoggingInterceptor;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(clientLoggingInterceptor);
+        return restTemplate;
+    }
+}
+```
+
+**Using X-402 headers in requests:**
+
+```java
+@Autowired
+private RestTemplate restTemplate;
+
+public void callExternalService() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-402-Agent-Id", "buyer-123");
+    headers.set("X-402-Network", "eip155:84532");  // CAIP-2 format
+    headers.set("X-402-Asset", "USDC");
+    headers.set("X-402-Amount", "1000000");
+    headers.set("X-402-TxHash", "0x123abc...");
+    headers.set("X-402-Billing-Key", "premium");
+
+    HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+    ResponseEntity<String> response = restTemplate.exchange(
+        url, HttpMethod.POST, entity, String.class
+    );
+
+    // Request is automatically logged with extracted header information
+}
+```
+
+**Comparison of Auto-Logging Approaches:**
+
+| Feature | Server Interceptor | @X402Logged Annotation | RestTemplate Interceptor |
+|---------|-------------------|------------------------|--------------------------|
+| **Scope** | All incoming requests | Specific methods | All outgoing requests |
+| **Use Case** | Service provider (seller) | Flexible logging | Service consumer (buyer) |
+| **Configuration** | `enable-auto-logging=true` | Add annotation to methods | `enable-client-auto-logging=true` |
+| **Granularity** | Request-level | Method-level | Request-level |
+| **Performance** | Minimal overhead | Minimal overhead | Minimal overhead |
+| **Metadata** | From HTTP headers | From annotation parameters | From X-402-* headers |
 
 ### Buyer Dashboard (Service Consumer Perspective)
 
@@ -404,8 +522,11 @@ x402.buyer.dashboard.default-buyer-id=
 x402.dashboard.in-memory=true
 x402.dashboard.file-path=./x402-dashboard-db
 
-# Auto-logging interceptor
+# Auto-logging interceptor (server-side - incoming requests)
 x402.dashboard.enable-auto-logging=false
+
+# Client-side auto-logging (outgoing RestTemplate requests)
+x402.dashboard.enable-client-auto-logging=false
 
 # Multi-tenant support
 x402.dashboard.default-tenant-id=
@@ -425,7 +546,8 @@ x402:
     api-path: /x402-dashboard/api
     in-memory: true
     file-path: ./x402-dashboard-db
-    enable-auto-logging: false
+    enable-auto-logging: false           # Server-side interceptor (incoming)
+    enable-client-auto-logging: false    # Client-side interceptor (outgoing)
     default-tenant-id: ""
     security-enabled: false
     security-username: admin

@@ -19,9 +19,14 @@ public class X402DashboardProperties {
     private String apiPath = "/x402-dashboard/api";
 
     /**
-     * Enable auto logging interceptor
+     * Enable server-side auto logging interceptor (for incoming requests)
      */
     private boolean enableAutoLogging = false;
+
+    /**
+     * Enable client-side auto logging interceptor (for outgoing RestTemplate/RestClient requests)
+     */
+    private boolean enableClientAutoLogging = false;
 
     /**
      * H2 in-memory mode
@@ -76,6 +81,14 @@ public class X402DashboardProperties {
 
     public void setEnableAutoLogging(boolean enableAutoLogging) {
         this.enableAutoLogging = enableAutoLogging;
+    }
+
+    public boolean isEnableClientAutoLogging() {
+        return enableClientAutoLogging;
+    }
+
+    public void setEnableClientAutoLogging(boolean enableClientAutoLogging) {
+        this.enableClientAutoLogging = enableClientAutoLogging;
     }
 
     public boolean isInMemory() {
