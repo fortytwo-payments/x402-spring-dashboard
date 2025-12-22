@@ -6,6 +6,8 @@
 
 A lightweight, embeddable dashboard library for monitoring and analyzing HTTP 402 Payment Required transactions in Spring Boot applications. Built specifically for the x402 protocol ecosystem.
 
+**Dual Dashboard Support**: Monitor both sides of x402 transactions - track revenue as a **service provider (seller)** and manage spending as a **service consumer (buyer/agent)**.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -30,7 +32,10 @@ A lightweight, embeddable dashboard library for monitoring and analyzing HTTP 40
 
 ## Overview
 
-X402 Dashboard is a Spring Boot starter library that provides real-time monitoring and analytics for HTTP 402 (Payment Required) transactions. It's designed for service providers (sellers) who want to track usage, revenue, and payment patterns of their APIs.
+X402 Dashboard is a Spring Boot starter library that provides real-time monitoring and analytics for HTTP 402 (Payment Required) transactions. It supports **dual perspectives**:
+
+- **Seller Dashboard**: Track incoming payment requests and revenue from your APIs (service provider perspective)
+- **Buyer Dashboard**: Monitor outbound payments and spending on external services (AI agent / service consumer perspective)
 
 ### What is x402?
 
@@ -38,22 +43,43 @@ The x402 protocol enables **HTTP-native micropayments** using blockchain technol
 
 **Protocol Version**: This dashboard supports **x402 v2** specification with CAIP-2 network identifiers (e.g., `eip155:84532` for Base Sepolia).
 
-This dashboard helps you understand:
+**Seller Dashboard** helps you understand:
 - How many payment requests are being made
 - Which endpoints generate the most revenue
 - Payment success/failure rates
 - Client usage patterns
 - Transaction settlement times
 
+**Buyer Dashboard** helps you track:
+- Total spending across external services
+- Cost per service and endpoint
+- Budget consumption trends
+- Payment success rates
+- Service-level cost analysis
+
 ## Features
 
-### Dashboard UI
+### Seller Dashboard (Service Provider)
+Track incoming payment requests and revenue from your APIs:
 - **Overview Page**: Total requests, success rate, revenue metrics with time-series charts
 - **Agents Page**: Per-agent usage and revenue analysis
 - **Endpoints Page**: Endpoint-level performance and revenue tracking
 - **Events Page**: Detailed transaction log with filtering and pagination
 
+### Buyer Dashboard (Service Consumer / AI Agent)
+Monitor outbound payments and spending on external services:
+- **Overview Page**: Total spending, request count, success rate with interactive charts
+  - Daily spending trend (line chart)
+  - Category breakdown (doughnut chart)
+  - Top services by spending (bar chart)
+- **Services Page**: Service-level cost analysis and request statistics
+- **Transactions Page**: Complete payment history with advanced filtering
+  - Filter by date range, service, and payment status
+  - Pagination support for large datasets
+  - Export-ready transaction details
+
 ### Technical Features
+- **Dual Dashboard**: Both seller and buyer perspectives in one library
 - **Zero Configuration**: Add one annotation and you're ready
 - **H2 Database**: In-memory or file-based storage
 - **Embedded UI**: Thymeleaf templates with Tailwind CSS and Chart.js
@@ -61,6 +87,7 @@ This dashboard helps you understand:
 - **Auto-Logging**: Optional interceptor for automatic request tracking
 - **Multi-Tenant Support**: Track usage across different tenants/services
 - **Extensible**: Builder pattern API for custom event logging
+- **Demo Data**: Pre-loaded sample data for immediate exploration
 
 ## Architecture
 
@@ -86,9 +113,11 @@ This dashboard helps you understand:
 │  └──────────────────────────────────────────┘    │
 │                                                  │
 │  Access Points:                                  │
-│  • /x402-dashboard      → Web UI                │
-│  • /x402-dashboard/api  → REST API              │
-│  • /h2-console          → Database Console      │
+│  • /x402-dashboard            → Seller Dashboard UI
+│  • /x402-dashboard/api        → Seller Dashboard API
+│  • /x402-buyer-dashboard      → Buyer Dashboard UI
+│  • /x402-buyer-dashboard/api  → Buyer Dashboard API
+│  • /h2-console                → Database Console │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -168,9 +197,11 @@ public class MyApiApplication {
 ./gradlew bootRun
 ```
 
-3. **Access the dashboard:**
+3. **Access the dashboards:**
 
-Open your browser and navigate to: `http://localhost:8080/x402-dashboard`
+Open your browser and navigate to:
+- **Seller Dashboard**: `http://localhost:8080/x402-dashboard`
+- **Buyer Dashboard**: `http://localhost:8080/x402-buyer-dashboard` (requires `x402.buyer.dashboard.enabled=true`)
 
 That's it! You now have a fully functional x402 payment dashboard.
 
@@ -284,6 +315,50 @@ The interceptor will:
 
 > **Note**: Dashboard endpoints (`/x402-dashboard/**`) are automatically excluded from auto-logging.
 
+### Buyer Dashboard (Service Consumer Perspective)
+
+Enable the Buyer Dashboard to track outbound payments from your AI agents:
+
+```properties
+x402.buyer.dashboard.enabled=true
+x402.buyer.dashboard.default-buyer-id=my-agent-001
+```
+
+Then log outbound payment events using `X402SpendingLogger`:
+
+```java
+@RestController
+public class MyAgentController {
+
+    @Autowired
+    private X402SpendingLogger spendingLogger;
+
+    @PostMapping("/invoke-service")
+    public ResponseEntity<?> invokeExternalService() {
+        // Call external x402-enabled service
+        // After payment, log the spending event
+
+        spendingLogger.logSuccess(
+            "my-agent-001",        // buyerId
+            "OpenAI API",          // serviceName
+            "/v1/chat/completions", // endpoint
+            "eip155:8453",         // network (CAIP-2 format: Base Mainnet)
+            "USDC",                // asset
+            5000000L,              // amountAtomic (5 USDC)
+            "0xabc123...",         // txHash
+            250L                   // latencyMs
+        );
+
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+**Buyer Dashboard Features:**
+- **Overview**: Total spending, request count, success rate with daily trends
+- **Services**: Per-service cost analysis and request statistics
+- **Transactions**: Complete payment history with date/service/status filtering
+
 ## Network Format (CAIP-2)
 
 This dashboard uses the **CAIP-2** (Chain Agnostic Improvement Proposal) standard for network identifiers, as specified in x402 v2.
@@ -315,9 +390,15 @@ Configure the dashboard via `application.properties` or `application.yml`:
 ### application.properties
 
 ```properties
-# Dashboard paths
+# Seller Dashboard paths
 x402.dashboard.path=/x402-dashboard
 x402.dashboard.api-path=/x402-dashboard/api
+
+# Buyer Dashboard paths and settings
+x402.buyer.dashboard.enabled=false
+x402.buyer.dashboard.path=/x402-buyer-dashboard
+x402.buyer.dashboard.api-path=/x402-buyer-dashboard/api
+x402.buyer.dashboard.default-buyer-id=
 
 # H2 Database settings
 x402.dashboard.in-memory=true
@@ -349,6 +430,12 @@ x402:
     security-enabled: false
     security-username: admin
     security-password: admin
+  buyer:
+    dashboard:
+      enabled: false
+      path: /x402-buyer-dashboard
+      api-path: /x402-buyer-dashboard/api
+      default-buyer-id: ""
 ```
 
 ## Project Structure
@@ -365,7 +452,7 @@ x402-spring-dashboard/
 │   │   │   │   ├── X402DashboardProperties.java
 │   │   │   │   └── X402DemoDataLoader.java
 │   │   │   ├── domain/
-│   │   │   │   ├── X402UsageEvent.java               # Main entity
+│   │   │   │   ├── X402UsageEvent.java               # Main entity (seller)
 │   │   │   │   ├── X402UsageStatus.java              # Status enum
 │   │   │   │   └── AgentType.java                    # Agent type enum
 │   │   │   ├── repository/
@@ -376,22 +463,47 @@ x402-spring-dashboard/
 │   │   │   │   └── dto/                              # Data transfer objects
 │   │   │   ├── logging/
 │   │   │   │   └── X402UsageLogger.java              # Public API for logging
+│   │   │   ├── buyer/                                # Buyer Dashboard Module
+│   │   │   │   ├── config/
+│   │   │   │   │   ├── X402BuyerDashboardProperties.java
+│   │   │   │   │   └── X402BuyerDemoDataLoader.java
+│   │   │   │   ├── domain/
+│   │   │   │   │   ├── X402SpendingEvent.java        # Main entity (buyer)
+│   │   │   │   │   └── ServiceCategory.java          # Category enum
+│   │   │   │   ├── repository/
+│   │   │   │   │   └── X402SpendingEventRepository.java
+│   │   │   │   ├── service/
+│   │   │   │   │   ├── X402SpendingEventService.java
+│   │   │   │   │   ├── X402SpendingAggregationService.java
+│   │   │   │   │   └── dto/
+│   │   │   │   ├── logging/
+│   │   │   │   │   └── X402SpendingLogger.java       # Public API for buyer logging
+│   │   │   │   └── web/
+│   │   │   │       ├── X402BuyerDashboardController.java
+│   │   │   │       └── X402BuyerDashboardRestController.java
 │   │   │   └── web/
-│   │   │       ├── X402DashboardController.java      # Thymeleaf views
-│   │   │       ├── X402DashboardRestController.java  # REST API
+│   │   │       ├── X402DashboardController.java      # Thymeleaf views (seller)
+│   │   │       ├── X402DashboardRestController.java  # REST API (seller)
 │   │   │       └── X402UsageLoggingInterceptor.java  # Auto-logging
 │   │   └── resources/
-│   │       ├── templates/x402-dashboard/
-│   │       │   ├── layout.html                       # Common layout
-│   │       │   ├── index.html                        # Overview page
-│   │       │   ├── agents.html                       # Agents analytics
-│   │       │   ├── endpoints.html                    # Endpoints analytics
-│   │       │   └── events.html                       # Event log
+│   │       ├── templates/
+│   │       │   ├── x402-dashboard/                   # Seller Dashboard Templates
+│   │       │   │   ├── layout.html
+│   │       │   │   ├── index.html
+│   │       │   │   ├── agents.html
+│   │       │   │   ├── endpoints.html
+│   │       │   │   └── events.html
+│   │       │   └── x402-buyer-dashboard/             # Buyer Dashboard Templates
+│   │       │       ├── overview.html
+│   │       │       ├── services.html
+│   │       │       └── transactions.html
 │   │       └── application.properties
 │   └── test/
 │       └── java/io/x402/dashboard/
 │           ├── ApplicationTests.java
-│           └── X402DemoDataTest.java
+│           ├── X402DemoDataTest.java
+│           └── buyer/
+│               └── X402BuyerDashboardTest.java
 ├── build.gradle
 └── README.md
 ```
@@ -409,20 +521,34 @@ x402-spring-dashboard/
 
 # Run specific test class
 ./gradlew test --tests X402DemoDataTest
+
+# Run buyer dashboard tests
+./gradlew test --tests X402BuyerDashboardTest
 ```
 
 ### Running with Demo Data
 
-To see the dashboard in action with sample data:
+To see the dashboards in action with sample data:
 
+**Seller Dashboard Demo:**
 ```bash
 ./gradlew bootRun --args='--spring.profiles.active=demo'
 ```
 
 This will:
 - Start the application
-- Load 100 sample x402 events into the database
-- Make the dashboard immediately explorable
+- Load 100 sample x402 usage events into the seller dashboard
+- Access at: http://localhost:8080/x402-dashboard
+
+**Buyer Dashboard Demo:**
+```bash
+./gradlew bootRun --args='--spring.profiles.active=demo --x402.buyer.dashboard.enabled=true'
+```
+
+This will:
+- Start the application with buyer dashboard enabled
+- Load sample spending events for buyer dashboard
+- Access at: http://localhost:8080/x402-buyer-dashboard
 
 ### Manual Testing
 
@@ -431,8 +557,9 @@ This will:
    ./gradlew bootRun
    ```
 
-2. **Access the dashboard:**
-   - Dashboard UI: http://localhost:8080/x402-dashboard
+2. **Access the dashboards:**
+   - Seller Dashboard UI: http://localhost:8080/x402-dashboard
+   - Buyer Dashboard UI: http://localhost:8080/x402-buyer-dashboard
    - H2 Console: http://localhost:8080/h2-console
      - JDBC URL: `jdbc:h2:mem:x402-dashboard`
      - Username: `sa`
@@ -480,9 +607,9 @@ class X402DashboardIntegrationTest {
 
 ## API Documentation
 
-### REST API Endpoints
+### Seller Dashboard REST API
 
-All API endpoints are prefixed with `/x402-dashboard/api`:
+All Seller Dashboard API endpoints are prefixed with `/x402-dashboard/api`:
 
 #### Overview Statistics
 ```
@@ -585,6 +712,108 @@ Returns the most recent events.
 ]
 ```
 
+### Buyer Dashboard REST API
+
+All Buyer Dashboard API endpoints are prefixed with `/x402-buyer-dashboard/api`:
+
+#### Spending Overview
+```
+GET /x402-buyer-dashboard/api/overview
+    ?buyerId=my-agent-001
+    &from=2024-01-01T00:00:00
+    &to=2024-12-31T23:59:59
+```
+
+Returns total spending, request count, and success rate.
+
+**Response Example:**
+```json
+{
+  "totalSpending": 50000000,
+  "requestCount": 125,
+  "successCount": 120,
+  "successRate": 96.0,
+  "from": "2024-01-01T00:00:00Z",
+  "to": "2024-12-31T23:59:59Z"
+}
+```
+
+#### Top Services by Spending
+```
+GET /x402-buyer-dashboard/api/services/top
+    ?buyerId=my-agent-001
+    &from=2024-01-01T00:00:00
+    &to=2024-12-31T23:59:59
+    &limit=10
+```
+
+Returns services ranked by total spending.
+
+**Response Example:**
+```json
+[
+  {
+    "serviceName": "OpenAI API",
+    "requestCount": 45,
+    "totalSpending": 22500000,
+    "avgLatencyMs": 180.5
+  },
+  {
+    "serviceName": "Anthropic Claude API",
+    "requestCount": 38,
+    "totalSpending": 19000000,
+    "avgLatencyMs": 150.2
+  }
+]
+```
+
+#### Recent Transactions
+```
+GET /x402-buyer-dashboard/api/transactions/recent
+    ?buyerId=my-agent-001
+    &limit=10
+```
+
+Returns the most recent spending transactions.
+
+#### Daily Spending Trend (Chart Data)
+```
+GET /x402-buyer-dashboard/api/charts/daily-spending
+    ?buyerId=my-agent-001
+    &from=2024-01-01T00:00:00
+    &to=2024-01-31T23:59:59
+```
+
+Returns daily aggregated spending for chart visualization.
+
+**Response Example:**
+```json
+{
+  "2024-01-01": 1500000,
+  "2024-01-02": 2300000,
+  "2024-01-03": 1800000
+}
+```
+
+#### Category Spending (Chart Data)
+```
+GET /x402-buyer-dashboard/api/charts/category-spending
+    ?buyerId=my-agent-001
+    &from=2024-01-01T00:00:00
+    &to=2024-12-31T23:59:59
+```
+
+Returns spending breakdown by service category (AI, BLOCKCHAIN, DATA, OTHER).
+
+**Response Example:**
+```json
+{
+  "AI": 35000000,
+  "BLOCKCHAIN": 10000000,
+  "DATA": 5000000
+}
+```
+
 ## Screenshots
 
 ### Overview Dashboard
@@ -640,12 +869,17 @@ Please use GitHub Issues to report bugs or request features. Include:
 - [x] Auto-logging interceptor
 - [x] Demo data generation
 
-### Upcoming Features (v0.2.0)
-- [ ] **Buyer Dashboard** - Track outbound payments from AI agents
-  - [ ] Agent spending analytics
-  - [ ] Budget monitoring and alerts
-  - [ ] Anomaly detection
-  - [ ] Service-level cost analysis
+### Recently Completed (v0.2.0)
+- [x] **Buyer Dashboard** - Track outbound payments from AI agents
+  - [x] Overview page with spending analytics
+  - [x] Daily spending trends with interactive charts
+  - [x] Service-level cost analysis
+  - [x] Transaction history with filtering
+  - [x] Category breakdown visualization
+
+### Upcoming Features (v0.3.0)
+- [ ] Budget monitoring and alerts for Buyer Dashboard
+- [ ] Anomaly detection for unusual spending patterns
 - [ ] Spring Security integration (Basic Auth / Form Login)
 - [ ] PostgreSQL/MySQL support
 - [ ] CSV/Excel export functionality
