@@ -1,10 +1,10 @@
 package io.x402.dashboard;
 
-import io.x402.dashboard.annotation.EnableX402Dashboard;
-import io.x402.dashboard.domain.X402UsageEvent;
-import io.x402.dashboard.domain.X402UsageStatus;
-import io.x402.dashboard.repository.X402UsageEventRepository;
-import io.x402.dashboard.web.X402ClientLoggingInterceptor;
+import io.x402.dashboard.seller.annotation.EnableX402Dashboard;
+import io.x402.dashboard.seller.domain.X402UsageEvent;
+import io.x402.dashboard.seller.domain.X402UsageStatus;
+import io.x402.dashboard.seller.repository.X402UsageEventRepository;
+import io.x402.dashboard.common.web.X402ClientLoggingInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

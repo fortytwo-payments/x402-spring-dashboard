@@ -1,7 +1,7 @@
 package io.x402.dashboard.testutil;
 
-import io.x402.dashboard.annotation.X402Logged;
-import io.x402.dashboard.domain.AgentType;
+import io.x402.dashboard.common.annotation.X402Logged;
+import io.x402.dashboard.seller.domain.AgentType;
 import org.springframework.stereotype.Service;
 
 /**

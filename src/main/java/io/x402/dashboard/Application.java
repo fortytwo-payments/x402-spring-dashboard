@@ -1,6 +1,6 @@
 package io.x402.dashboard;
 
-import io.x402.dashboard.annotation.EnableX402Dashboard;
+import io.x402.dashboard.seller.annotation.EnableX402Dashboard;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

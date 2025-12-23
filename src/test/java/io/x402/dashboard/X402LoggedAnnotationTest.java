@@ -1,9 +1,9 @@
 package io.x402.dashboard;
 
-import io.x402.dashboard.domain.AgentType;
-import io.x402.dashboard.domain.X402UsageEvent;
-import io.x402.dashboard.domain.X402UsageStatus;
-import io.x402.dashboard.repository.X402UsageEventRepository;
+import io.x402.dashboard.seller.domain.AgentType;
+import io.x402.dashboard.seller.domain.X402UsageEvent;
+import io.x402.dashboard.seller.domain.X402UsageStatus;
+import io.x402.dashboard.seller.repository.X402UsageEventRepository;
 import io.x402.dashboard.testutil.X402TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

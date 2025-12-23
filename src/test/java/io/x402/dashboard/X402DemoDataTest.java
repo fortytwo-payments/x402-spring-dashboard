@@ -1,11 +1,11 @@
 package io.x402.dashboard;
 
-import io.x402.dashboard.domain.AgentType;
-import io.x402.dashboard.domain.X402UsageStatus;
-import io.x402.dashboard.logging.X402UsageLogger;
-import io.x402.dashboard.repository.X402UsageEventRepository;
-import io.x402.dashboard.service.X402UsageAggregationService;
-import io.x402.dashboard.service.X402UsageEventService;
+import io.x402.dashboard.seller.domain.AgentType;
+import io.x402.dashboard.seller.domain.X402UsageStatus;
+import io.x402.dashboard.seller.logging.X402UsageLogger;
+import io.x402.dashboard.seller.repository.X402UsageEventRepository;
+import io.x402.dashboard.seller.service.X402UsageAggregationService;
+import io.x402.dashboard.seller.service.X402UsageEventService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
